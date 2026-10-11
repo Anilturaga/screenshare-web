@@ -1,12 +1,18 @@
 // Offline-capable app shell. Hashed build assets and tailcat.wasm.gz are
 // cache-first; the page itself is network-first so new deploys load.
-// `make web` stamps VERSION; a new version drops the old cache.
-const VERSION = "4b83d2ffaaeb";
+//
+// Cache Storage is shared by every page on this origin (all of the
+// account's GitHub Pages sites), so a cached response is only served if its
+// SHA-256 matches HASHES. `make web` (scripts/stamp-sw.mjs) stamps VERSION
+// and HASHES; the browser always fetches this file itself from the network.
+const VERSION = "7660f3e3801b";
+const HASHES = {"assets/index-CLOkau7L.css":"HhTLrH5Ei14pXrhCxr7ePvd+7Rj8HfqBMWVM+WlK1vQ=","assets/index-DgVCm5LK.js":"fpNmA+KCltQl8VRBpgbugKXoqLI/hRA979O6luFckRI=","icon-192.png":"vaFoSdPPFKlFxO3XahKqGPJclTehJupO9r5asO5Njh4=","icon-512.png":"yJ90S/eQIJYVoIWxmQoQuuGau+5PQlDG1aS4FFUFHqA=","icon.svg":"4/9kMVKtY0X6SNJoc9WUmG27wukukQU1Uzl6iByJiII=","index.html":"n7ujLfxcxyaq5UPT9kiVxVn3FtBuaEe3s4FCmE6X7PQ=","manifest.webmanifest":"mPdMpKkUTeLwVwfUh1G0yOeN6Ku/DZmIaxC5xkReOiU=","tailcat.wasm.gz":"6iJY6ec4SloF9wO+KNQ+u+Fy8mJGgDNe6JkNpov7734=","wasm_exec.js":"DJSfSZb5qJaY5LXFht4yJJw7abe6rbZNIgBzzASsuhQ="};
 const CACHE = "screenshare-" + VERSION;
-const PRECACHE = ["./", "wasm_exec.js", "tailcat.wasm.gz", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
+const PRECACHE = ["wasm_exec.js", "tailcat.wasm.gz", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
+const SCOPE = new URL(self.registration.scope).pathname;
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["./", ...PRECACHE])).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
@@ -16,19 +22,37 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  const req = e.request;
-  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  const req = e.request, url = new URL(req.url);
+  if (req.method !== "GET" || url.origin !== location.origin || !url.pathname.startsWith(SCOPE)) return;
+  const path = url.pathname.slice(SCOPE.length) || "index.html";
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then((r) => put(req, r)).catch(() => caches.match("./")));
+    e.respondWith(fetch(req).then((r) => store("./", r)).catch(() => fromCache("./", "index.html")));
     return;
   }
-  e.respondWith(caches.match(req, { ignoreSearch: true }).then((hit) => hit || fetch(req).then((r) => put(req, r))));
+  e.respondWith(fromCache(req, path).then((hit) => hit || fetch(req).then((r) => store(req, r))));
 });
 
-function put(req, res) {
+// fromCache returns a cached response only if it matches its build hash.
+async function fromCache(key, path) {
+  const want = HASHES[path];
+  if (!want) return undefined;
+  const cache = await caches.open(CACHE);
+  const hit = await cache.match(key, { ignoreSearch: true });
+  if (!hit) return undefined;
+  if ((await digest(hit.clone())) === want) return hit;
+  await cache.delete(key, { ignoreSearch: true }); // tampered or stale
+  return undefined;
+}
+
+function store(key, res) {
   if (res.ok) {
     const copy = res.clone();
-    caches.open(CACHE).then((c) => c.put(req.mode === "navigate" ? "./" : req, copy));
+    caches.open(CACHE).then((c) => c.put(key, copy));
   }
   return res;
+}
+
+async function digest(res) {
+  const h = new Uint8Array(await crypto.subtle.digest("SHA-256", await res.arrayBuffer()));
+  return btoa(String.fromCharCode(...h));
 }
