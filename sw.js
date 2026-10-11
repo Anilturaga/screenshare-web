@@ -5,8 +5,8 @@
 // account's GitHub Pages sites), so a cached response is only served if its
 // SHA-256 matches HASHES. `make web` (scripts/stamp-sw.mjs) stamps VERSION
 // and HASHES; the browser always fetches this file itself from the network.
-const VERSION = "7660f3e3801b";
-const HASHES = {"assets/index-CLOkau7L.css":"HhTLrH5Ei14pXrhCxr7ePvd+7Rj8HfqBMWVM+WlK1vQ=","assets/index-DgVCm5LK.js":"fpNmA+KCltQl8VRBpgbugKXoqLI/hRA979O6luFckRI=","icon-192.png":"vaFoSdPPFKlFxO3XahKqGPJclTehJupO9r5asO5Njh4=","icon-512.png":"yJ90S/eQIJYVoIWxmQoQuuGau+5PQlDG1aS4FFUFHqA=","icon.svg":"4/9kMVKtY0X6SNJoc9WUmG27wukukQU1Uzl6iByJiII=","index.html":"n7ujLfxcxyaq5UPT9kiVxVn3FtBuaEe3s4FCmE6X7PQ=","manifest.webmanifest":"mPdMpKkUTeLwVwfUh1G0yOeN6Ku/DZmIaxC5xkReOiU=","tailcat.wasm.gz":"6iJY6ec4SloF9wO+KNQ+u+Fy8mJGgDNe6JkNpov7734=","wasm_exec.js":"DJSfSZb5qJaY5LXFht4yJJw7abe6rbZNIgBzzASsuhQ="};
+const VERSION = "2916b7e0a273";
+const HASHES = {"assets/index-BAOxSNP5.js":"j2I/BIs7dP0+2E4cow11ans7+PE4evv2PkTEmaifoL0=","assets/index-VYJC8LNZ.css":"CXQCsfVy9I67pDN5cIQeAivO1HzEZQdTRMQLuQCHdws=","icon-192.png":"vaFoSdPPFKlFxO3XahKqGPJclTehJupO9r5asO5Njh4=","icon-512.png":"yJ90S/eQIJYVoIWxmQoQuuGau+5PQlDG1aS4FFUFHqA=","icon.svg":"4/9kMVKtY0X6SNJoc9WUmG27wukukQU1Uzl6iByJiII=","index.html":"6QL7tVpR0/AdkMZrX+teA3rZg9ng9aUfanQJNKTuh38=","manifest.webmanifest":"mPdMpKkUTeLwVwfUh1G0yOeN6Ku/DZmIaxC5xkReOiU=","tailcat.wasm.gz":"6iJY6ec4SloF9wO+KNQ+u+Fy8mJGgDNe6JkNpov7734=","wasm_exec.js":"DJSfSZb5qJaY5LXFht4yJJw7abe6rbZNIgBzzASsuhQ="};
 const CACHE = "screenshare-" + VERSION;
 const PRECACHE = ["wasm_exec.js", "tailcat.wasm.gz", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 const SCOPE = new URL(self.registration.scope).pathname;
